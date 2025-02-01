@@ -1,0 +1,364 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon-Style Hover Zoom</title>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- ElevateZoom for Hover Zoom Effect -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+
+    <!-- Swiper.js for Thumbnail Slider -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f9f9f9;
+        }
+
+        .product-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* Product Gallery */
+        .product-gallery {
+            display: flex;
+            gap: 15px;
+        }
+
+        .gallery-thumbs {
+            width: 100px;
+            height: 400px;
+            overflow: hidden;
+        }
+
+            .gallery-thumbs .swiper-slide {
+                cursor: pointer;
+                border: 2px solid transparent;
+                transition: 0.3s;
+            }
+
+                .gallery-thumbs .swiper-slide:hover {
+                    border: 2px solid #007bff;
+                }
+
+            .gallery-thumbs img {
+                width: 100%;
+                border-radius: 5px;
+            }
+
+        .main-image {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            overflow: hidden; /* Make sure no zoom appears outside of the main image */
+        }
+
+            .main-image img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                border-radius: 5px;
+            }
+
+        /* Product Details */
+        .product-details {
+            max-width: 300px;
+        }
+
+            .product-details h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 10px;
+        }
+
+        .shipping {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .btn-cart {
+            background: white;
+            border: 2px solid black;
+            color: black;
+        }
+
+            .btn-cart:hover {
+                background: black;
+                color: white;
+            }
+
+        .btn-buy {
+            background: #ff9900;
+            color: white;
+            border: none;
+        }
+
+            .btn-buy:hover {
+                background: #e68a00;
+            }
+
+        /* Zoomed Image Styles */
+        .zoomContainer {
+            z-index: 9999 !important;
+        }
+
+        /* Media Queries for mobile view */
+        @media (max-width: 768px) {
+            .product-container {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+                overflow: hidden; /* Prevents overflow issues */
+            }
+
+            .product-gallery {
+                flex: none;
+                align-items: center;
+                width: 100%;
+            }
+
+            .product-details {
+                max-width: 100%;
+                text-align: center;
+            }
+
+            .main-image {
+                height: 250px;
+                width: 100%;
+            }
+
+            /* Disable zoom functionality on mobile */
+            .zoomContainer {
+                display: none !important;
+            }
+
+            /* Thumbnail Section for Mobile */
+            .gallery-thumbs {
+                display: flex;
+                flex-direction: row; /* Align thumbnails horizontally on mobile */
+                justify-content: center;
+                width: 100%;
+                overflow-x: auto; /* Enable horizontal scrolling */
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+                .gallery-thumbs .swiper-slide {
+                    width: 80px;
+                    height: 80px;
+                    flex-shrink: 0;
+                    cursor: pointer;
+                    transition: 0.3s;
+                }
+
+                    .gallery-thumbs .swiper-slide img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                        border-radius: 5px;
+                    }
+
+            /* Preventing thumbnail collapsing */
+            .swiper-slide img {
+                object-fit: cover;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* Zoom Icon for Mobile */
+            .zoom-icon {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 10px;
+                cursor: pointer;
+                border-radius: 50%;
+                font-size: 20px;
+                z-index: 10;
+            }
+
+            /* Zoom Modal Style */
+            .zoom-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
+
+            .zoomed-img {
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="product-container">
+        <!-- Product Image Section -->
+        <div class="product-gallery">
+            <!-- Vertical Thumbnail Slider -->
+            <div class="swiper-container gallery-thumbs">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <img src="images/7550.jpg" onclick="changeImage('images/7550.jpg', 'images/7550.jpg')" />
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="images/7501.jpg" onclick="changeImage('images/7501.jpg', 'images/7501.jpg')" />
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="images/7504.jpg" onclick="changeImage('images/7504.jpg', 'images/7504.jpg')" />
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="images/4_3.jpg" onclick="changeImage('images/4_3.jpg', 'images/4_3.jpg')" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Image with Zoom -->
+            <div class="main-image" id="zoom-container">
+                <img id="zoomed-image" src="images/7550.jpg" data-zoom-image="images/7550.jpg" />
+                <!-- Zoom Icon -->
+                <div class="zoom-icon" id="zoom-icon">&#128269;</div>
+            </div>
+        </div>
+
+        <!-- Product Details Section -->
+        <div class="product-details">
+            <h1>Vismaya - Electric Blue Banarasi Silk Saree</h1>
+            <p class="price">Rs. 26,150.00</p>
+            <p class="shipping">Shipping calculated at checkout</p>
+            <button class="btn btn-cart">Add to cart</button>
+            <button class="btn btn-buy">Buy it now</button>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="zoom-modal" class="zoom-modal" style="display: none;">
+        <img class="zoomed-img" id="modal-img" />
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Zoom on first load only if on desktop (screens > 768px)
+            if (window.innerWidth > 768) {
+                $('#zoomed-image').elevateZoom({
+                    zoomType: 'lens',
+                    lensShape: 'square',
+                    lensSize: 100,
+                    scrollZoom: true,
+                    zoomContainer: $('#zoom-container') // Restrict zoom to the main image box
+                });
+            }
+
+            // Initialize Swiper for vertical thumbnails
+            var thumbSwiper = new Swiper(".gallery-thumbs", {
+                direction: "vertical",
+                slidesPerView: 3,
+                spaceBetween: 10,
+                freeMode: true,
+                watchSlidesVisibility: true,
+                watchSlidesProgress: true,
+            });
+
+            // Function to change image on thumbnail click
+            window.changeImage = function (image, zoomImage) {
+                var $zoomedImage = $("#zoomed-image");
+
+                // Remove previous zoom instance if any (only for desktop)
+                if (window.innerWidth > 768) {
+                    $(".zoomContainer").remove();
+                    $zoomedImage.removeData('elevateZoom').unbind(); // Fully remove old zoom
+                }
+
+                // Create a new image element to force refresh
+                var newImg = $("<img>").attr({
+                    id: "zoomed-image",
+                    src: image,
+                    "data-zoom-image": zoomImage
+                });
+
+                // Replace the old image with the new one
+                $zoomedImage.replaceWith(newImg);
+
+                // Reinitialize zoom after the new image is fully loaded (only for desktop)
+                if (window.innerWidth > 768) {
+                    newImg.on("load", function () {
+                        $(this).elevateZoom({
+                            zoomType: "lens",
+                            lensShape: "square",
+                            lensSize: 100,
+                            scrollZoom: true,
+                            zoomContainer: $('#zoom-container')
+                        });
+                    });
+                }
+            };
+
+            // Mobile Zoom Icon Click Event
+            $('#zoom-icon').click(function () {
+                var imgSrc = $('#zoomed-image').attr('src');
+                $('#modal-img').attr('src', imgSrc);
+                $('#zoom-modal').show();
+            });
+
+            // Close Zoom Modal on Click
+            $('#zoom-modal').click(function () {
+                $(this).hide();
+            });
+        });
+    </script>
+
+</body>
+</html>
